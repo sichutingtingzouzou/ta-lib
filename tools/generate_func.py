@@ -11,7 +11,7 @@ from talib import abstract
 # FIXME: don't return number of elements since it always equals allocation?
 
 functions = []
-include_paths = ['/usr/include', '/usr/local/include', '/opt/include', '/opt/local/include']
+include_paths = ['/usr/include', '/usr/local/include', '/opt/include', '/opt/local/include', '/opt/homebrew/include']
 if sys.platform == 'win32':
     include_paths = [r'c:\ta-lib\c\include']
 header_found = False
@@ -26,6 +26,8 @@ if not header_found:
 with open(ta_func_header) as f:
     tmp = []
     for line in f:
+        if line.startswith('TA_LIB_API'):
+            line = line[10:]
         line = line.strip()
         if tmp or \
             line.startswith('TA_RetCode TA_') or \
@@ -105,7 +107,7 @@ cdef np.npy_intp check_length4(np.ndarray a1, np.ndarray a2, np.ndarray a3, np.n
         raise Exception("input array lengths are different")
     return length
 
-cdef np.npy_int check_begidx1(np.npy_intp length, double* a1) except -1:
+cdef np.npy_int check_begidx1(np.npy_intp length, double* a1):
     cdef:
         double val
     for i from 0 <= i < length:
@@ -114,9 +116,9 @@ cdef np.npy_int check_begidx1(np.npy_intp length, double* a1) except -1:
             continue
         return i
     else:
-        raise Exception("inputs are all NaN")
+        return length - 1
 
-cdef np.npy_int check_begidx2(np.npy_intp length, double* a1, double* a2) except -1:
+cdef np.npy_int check_begidx2(np.npy_intp length, double* a1, double* a2):
     cdef:
         double val
     for i from 0 <= i < length:
@@ -128,9 +130,9 @@ cdef np.npy_int check_begidx2(np.npy_intp length, double* a1, double* a2) except
             continue
         return i
     else:
-        raise Exception("inputs are all NaN")
+        return length - 1
 
-cdef np.npy_int check_begidx3(np.npy_intp length, double* a1, double* a2, double* a3) except -1:
+cdef np.npy_int check_begidx3(np.npy_intp length, double* a1, double* a2, double* a3):
     cdef:
         double val
     for i from 0 <= i < length:
@@ -145,9 +147,9 @@ cdef np.npy_int check_begidx3(np.npy_intp length, double* a1, double* a2, double
             continue
         return i
     else:
-        raise Exception("inputs are all NaN")
+        return length - 1
 
-cdef np.npy_int check_begidx4(np.npy_intp length, double* a1, double* a2, double* a3, double* a4) except -1:
+cdef np.npy_int check_begidx4(np.npy_intp length, double* a1, double* a2, double* a3, double* a4):
     cdef:
         double val
     for i from 0 <= i < length:
@@ -165,7 +167,7 @@ cdef np.npy_int check_begidx4(np.npy_intp length, double* a1, double* a2, double
             continue
         return i
     else:
-        raise Exception("inputs are all NaN")
+        return length - 1
 
 cdef np.ndarray make_double_array(np.npy_intp length, int lookback):
     cdef:
@@ -255,7 +257,7 @@ for f in functions:
                 else:
                     print('int %s=-2**31' % var, end=' ')   # TA_INTEGER_DEFAULT
             elif arg.startswith('TA_MAType'):
-                print('int %s=0' % var, end=' ')            # TA_MAType_SMA
+                print('int %s=%s' % (var, defaults.get('matype', 0)), end=' ') # TA_MAType_SMA
             else:
                 assert False, arg
             if '[, ' not in docs:
@@ -269,6 +271,7 @@ for f in functions:
         lower_case = False
         documentation = documentation.split('\n')[2:] # discard abstract calling definition
         for line in documentation:
+            line = line.replace('Substraction', 'Subtraction')
             if 'prices' not in line and 'price' in line:
                 line = line.replace('price', 'real')
             if not line or line.isspace():
@@ -381,6 +384,18 @@ for f in functions:
 
     print(')')
     print('    _ta_check_success("%s", retCode)' % name)
+    if 'INDEX' in f:
+        for arg in args:
+            var = arg.split()[-1]
+
+            if 'out' not in var:
+                continue
+
+            if var.endswith('[]'):
+                var = cleanup(var[:-2])
+                print('    %s_data = <int*>%s.data' % (var, var))
+                print('    for i from lookback <= i < length:')
+                print('        %s_data[i] += begidx' % var)
     print('    return ', end='')
     i = 0
     for arg in args:

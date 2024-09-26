@@ -3,8 +3,8 @@ from cython import boundscheck, wraparound
 cimport _ta_lib as lib
 from _ta_lib cimport TA_RetCode
 # NOTE: _ta_check_success, NaN are defined in common.pxi
-#       NumPy C API is initialize in _func.pxi
 
+np.import_array() # Initialize the NumPy C API
 
 @wraparound(False)  # turn off relative indexing from end of lists
 @boundscheck(False) # turn off bounds-checking for entire function
@@ -443,8 +443,8 @@ def stream_BBANDS( np.ndarray real not None , int timeperiod=-2**31 , double nbd
         real: (any ndarray)
     Parameters:
         timeperiod: 5
-        nbdevup: 2
-        nbdevdn: 2
+        nbdevup: 2.0
+        nbdevdn: 2.0
         matype: 0 (Simple Moving Average)
     Outputs:
         upperband
@@ -4470,8 +4470,8 @@ def stream_SAREXT( np.ndarray high not None , np.ndarray low not None , double s
     Inputs:
         prices: ['high', 'low']
     Parameters:
-        startvalue: 0
-        offsetonreverse: 0
+        startvalue: 0.0
+        offsetonreverse: 0.0
         accelerationinitlong: 0.02
         accelerationlong: 0.02
         accelerationmaxlong: 0.2
@@ -4620,7 +4620,7 @@ def stream_STDDEV( np.ndarray real not None , int timeperiod=-2**31 , double nbd
         real: (any ndarray)
     Parameters:
         timeperiod: 5
-        nbdev: 1
+        nbdev: 1.0
     Outputs:
         real
     """
@@ -4761,7 +4761,7 @@ def stream_STOCHRSI( np.ndarray real not None , int timeperiod=-2**31 , int fast
 def stream_SUB( np.ndarray real0 not None , np.ndarray real1 not None ):
     """ SUB(real0, real1)
 
-    Vector Arithmetic Substraction (Math Operators)
+    Vector Arithmetic Subtraction (Math Operators)
 
     Inputs:
         real0: (any ndarray)
@@ -5130,7 +5130,7 @@ def stream_VAR( np.ndarray real not None , int timeperiod=-2**31 , double nbdev=
         real: (any ndarray)
     Parameters:
         timeperiod: 5
-        nbdev: 1
+        nbdev: 1.0
     Outputs:
         real
     """

@@ -11,7 +11,7 @@ from talib import abstract
 # FIXME: don't return number of elements since it always equals allocation?
 
 functions = []
-include_paths = ['/usr/include', '/usr/local/include', '/opt/include', '/opt/local/include']
+include_paths = ['/usr/include', '/usr/local/include', '/opt/include', '/opt/local/include', '/opt/homebrew/include']
 if sys.platform == 'win32':
     include_paths = [r'c:\ta-lib\c\include']
 header_found = False
@@ -26,6 +26,8 @@ if not header_found:
 with open(ta_func_header) as f:
     tmp = []
     for line in f:
+        if line.startswith('TA_LIB_API'):
+            line = line[10:]
         line = line.strip()
         if tmp or \
             line.startswith('TA_RetCode TA_') or \
@@ -52,8 +54,8 @@ from cython import boundscheck, wraparound
 cimport _ta_lib as lib
 from _ta_lib cimport TA_RetCode
 # NOTE: _ta_check_success, NaN are defined in common.pxi
-#       NumPy C API is initialize in _func.pxi
 
+np.import_array() # Initialize the NumPy C API
 """)
 
 # cleanup variable names to make them more pythonic
@@ -122,7 +124,7 @@ for f in functions:
                 else:
                     print('int %s=-2**31' % var, end=' ')   # TA_INTEGER_DEFAULT
             elif arg.startswith('TA_MAType'):
-                print('int %s=0' % var, end=' ')            # TA_MAType_SMA
+                print('int %s=%s' % (var, defaults.get('matype', 0)), end=' ') # TA_MAType_SMA
             else:
                 assert False, arg
             if '[, ' not in docs:
@@ -136,6 +138,7 @@ for f in functions:
         lower_case = False
         documentation = documentation.split('\n')[2:] # discard abstract calling definition
         for line in documentation:
+            line = line.replace('Substraction', 'Subtraction')
             if 'prices' not in line and 'price' in line:
                 line = line.replace('price', 'real')
             if not line or line.isspace():

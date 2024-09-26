@@ -1,3 +1,105 @@
+0.4.33
+======
+
+- [NEW]: Upgrade to Cython 3.0.11
+
+- [FIX]: Fix import of ``pandas`` and ``polars`` to throw underlying import errors
+
+0.4.32
+======
+
+- [FIX]: Make sure numpy<2 is in the requirements.txt
+
+0.4.31
+======
+
+- [FIX]: Fix build issue with numpy2 released by requiring numpy<2.0.0 for now
+
+0.4.30
+======
+
+- [FIX]: Fix the C library imports to work again on Windows, oops.
+
+0.4.29
+======
+
+- [NEW]: Upgrade to Cython 3.0.10
+
+- [FIX]: Make TA_INCLUDE_PATH and TA_LIBRARY_PATH override default search list
+
+- [FIX]: Silent some compiler warnings about const pointers
+
+0.4.28
+======
+
+- [NEW]: Upgrade to Cython 3.0.0
+
+- [FIX]: Use embedsignature to enable code completions?
+
+0.4.27
+======
+
+- [NEW]: Upgrade to Cython 0.29.36
+
+- [FIX]: Fix abstract info to keep values doubles when they are (e.g., nbdevup, nvdevdn)
+
+- [FIX]: Don't throw exceptions when inputs are all NaN
+
+0.4.26
+======
+
+- [NEW]: Upgrade to Cython 0.29.34
+
+- [NEW]: Moved to https://github.com/ta-lib/ta-lib-python
+
+- [FIX]: Fix deprecation warning for polars.DataFrame(columns=[...])
+
+0.4.25
+======
+
+- [NEW]: Upgrade to Cython 0.29.32
+
+- [FIX]: Allow Abstract API to be safely used with multithreading
+
+0.4.24
+======
+
+- [FIX]: runtime_lib_dirs preventing install on Windows
+
+0.4.23
+======
+
+- [NEW]: Upgrade to Cython 0.29.25
+
+- [NEW]: Allow TA_INCLUDE_PATH and TA_LIBRARY_PATH to work on Windows.
+
+- [FIX]: Remove pyproject.toml which was preventing some installs.
+
+0.4.22
+======
+
+- [NEW]: Upgrade to Cython 0.29.24
+
+- [NEW]: Support polars.Series in Function API
+
+- [NEW]: Support polars.Series in Streaming API
+
+- [NEW]: Support polars.DataFrame in Abstract API
+
+- [NEW]: Switch tests to pytest from nose (no longer supported).
+
+0.4.21
+======
+
+- [FIX]: Fixed {MIN/MAX/MINMAX}INDEX functions to return correct indices.
+
+0.4.20
+======
+
+- [NEW]: Upgrade to Cython 0.29.23
+
+- [FIX]: Fix Homebrew directory on Apple M1 devices
+
 0.4.19
 ======
 

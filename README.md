@@ -1,13 +1,13 @@
 # TA-Lib
 
-[![](https://api.travis-ci.org/mrjbq7/ta-lib.svg)](https://travis-ci.org/mrjbq7/ta-lib)
+![Tests](https://github.com/ta-lib/ta-lib-python/actions/workflows/tests.yml/badge.svg)
 
 This is a Python wrapper for [TA-LIB](http://ta-lib.org) based on Cython
 instead of SWIG. From the homepage:
 
 > TA-Lib is widely used by trading software developers requiring to perform
 > technical analysis of financial market data.
-
+>
 > * Includes 150+ indicators such as ADX, MACD, RSI, Stochastic, Bollinger
 >   Bands, etc.
 > * Candlestick pattern recognition
@@ -15,22 +15,34 @@ instead of SWIG. From the homepage:
 
 The original Python bindings included with TA-Lib use
 [SWIG](http://swig.org) which unfortunately are difficult to install and
-aren't as efficient as they could be. Therefore this project uses Cython and
-Numpy to efficiently and cleanly bind to TA-Lib -- producing results 2-4
-times faster than the SWIG interface.
+aren't as efficient as they could be. Therefore this project uses
+[Cython](https://cython.org) and [Numpy](https://numpy.org) to efficiently
+and cleanly bind to TA-Lib -- producing results 2-4 times faster than the
+SWIG interface.
+
+In addition, this project also supports the use of the
+[Polars](https://www.pola.rs) and [Pandas](https://pandas.pydata.org)
+libraries.
 
 ## Installation
 
 You can install from PyPI:
 
 ```
-$ pip install TA-Lib
+$ python -m pip install TA-Lib
 ```
 
 Or checkout the sources and run ``setup.py`` yourself:
 
 ```
 $ python setup.py install
+```
+
+It also appears possible to install via 
+[Conda Forge](https://anaconda.org/conda-forge/ta-lib):
+
+```
+$ conda install -c conda-forge ta-lib
 ```
 
 ### Dependencies
@@ -40,33 +52,53 @@ To use TA-Lib for python, you need to have the
 probably follow their installation directions for your platform, but some
 suggestions are included below for reference.
 
+> Some Conda Forge users have reported success installing the underlying TA-Lib C
+> library using [the libta-lib package](https://anaconda.org/conda-forge/libta-lib):
+>
+> ``$ conda install -c conda-forge libta-lib``
+
 ##### Mac OS X
+
+You can simply install using Homebrew:
 
 ```
 $ brew install ta-lib
 ```
 
-If you are using a M1 laptop and Homebrew, then you can set these before
-installing:
+If you are using Apple Silicon, such as the M1 processors, and building mixed
+architecture Homebrew projects, you might want to make sure it's being built
+for your architecture:
 
 ```
-export TA_INCLUDE_PATH="$(brew --prefix ta-lib)/include"
-export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
+$ arch -arm64 brew install ta-lib
+```
+
+And perhaps you can set these before installing with ``pip``:
+
+```
+$ export TA_INCLUDE_PATH="$(brew --prefix ta-lib)/include"
+$ export TA_LIBRARY_PATH="$(brew --prefix ta-lib)/lib"
+```
+
+You might also find this helpful, particularly if you have tried several
+different installations without success:
+
+```
+$ your-arm64-python -m pip install --no-cache-dir ta-lib
 ```
 
 ##### Windows
 
-Download [ta-lib-0.4.0-msvc.zip](http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-msvc.zip)
+Download [ta-lib-0.4.0-msvc.zip](https://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-msvc.zip/download)
 and unzip to ``C:\ta-lib``.
 
 > This is a 32-bit binary release.  If you want to use 64-bit Python, you will
-> need to build a 64-bit version of the library. Some unofficial (**and
-> unsupported**) instructions for building on 64-bit Windows 10, here for
-> reference:
+> need to build a 64-bit version of the library. Some unofficial instructions
+> for building on 64-bit Windows 10 or Windows 11, here for reference:
 >
 > 1. Download and Unzip ``ta-lib-0.4.0-msvc.zip``
 > 2. Move the Unzipped Folder ``ta-lib`` to ``C:\``
-> 3. Download and Install Visual Studio Community 2015
+> 3. Download and Install Visual Studio Community (2015 or later)
 >    * Remember to Select ``[Visual C++]`` Feature
 > 4. Build TA-Lib Library
 >    * From Windows Start Menu, Start ``[VS2015 x64 Native Tools Command
@@ -74,14 +106,16 @@ and unzip to ``C:\ta-lib``.
 >    * Move to ``C:\ta-lib\c\make\cdr\win32\msvc``
 >    * Build the Library ``nmake``
 
-You might also try these unofficial windows binaries for both 32-bit and
-64-bit:
+You might also try these unofficial windows binary wheels for both 32-bit
+and 64-bit:
 
-https://www.lfd.uci.edu/~gohlke/pythonlibs/#ta-lib
+https://github.com/cgohlke/talib-build/
 
 ##### Linux
 
-Download [ta-lib-0.4.0-src.tar.gz](http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz) and:
+Download
+[ta-lib-0.4.0-src.tar.gz](https://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz/download)
+and:
 
 ```
 $ tar -xzf ta-lib-0.4.0-src.tar.gz
@@ -94,6 +128,8 @@ $ sudo make install
 > If you build ``TA-Lib`` using ``make -jX`` it will fail but that's OK!
 > Simply rerun ``make -jX`` followed by ``[sudo] make install``.
 
+Note: if your directory path includes spaces, the installation will probably
+fail with ``No such file or directory`` errors.
 
 ### Troubleshooting
 
@@ -107,6 +143,8 @@ warnings.warn('Cannot find ta-lib library, installation may fail.')
 This typically means ``setup.py`` can't find the underlying ``TA-Lib``
 library, a dependency which needs to be installed.
 
+---
+
 If you installed the underlying ``TA-Lib`` library with a custom prefix
 (e.g., with ``./configure --prefix=$PREFIX``), then when you go to install
 this python wrapper you can specify additional search paths to find the
@@ -118,6 +156,8 @@ $ export TA_LIBRARY_PATH=$PREFIX/lib
 $ export TA_INCLUDE_PATH=$PREFIX/include
 $ python setup.py install # or pip install ta-lib
 ```
+
+---
 
 Sometimes installation will produce build errors like this:
 
@@ -143,6 +183,8 @@ dependency which needs to be installed.  On Windows, this could be caused by
 installing the 32-bit binary distribution of the underlying ``TA-Lib`` library,
 but trying to use it with 64-bit Python.
 
+---
+
 Sometimes installation will fail with errors like this:
 
 ```
@@ -160,6 +202,8 @@ something like:
 $ sudo apt-get install python3-dev
 ```
 
+---
+
 Sometimes building the underlying ``TA-Lib`` library has errors running
 ``make`` that look like this:
 
@@ -174,6 +218,8 @@ This might mean that the directory path to the underlying ``TA-Lib`` library
 has spaces in the directory names.  Try putting it in a path that does not have
 any spaces and trying again.
 
+---
+
 Sometimes you might get this error running ``setup.py``:
 
 ```
@@ -186,14 +232,29 @@ This is likely an issue with trying to compile for 32-bit platform but
 without the appropriate headers.  You might find some success looking at the
 first answer to [this question](https://stackoverflow.com/questions/54082459/fatal-error-bits-libc-header-start-h-no-such-file-or-directory-while-compili).
 
+---
+
+If you get an error on macOS like this:
+
+```
+code signature in <141BC883-189B-322C-AE90-CBF6B5206F67>
+'python3.9/site-packages/talib/_ta_lib.cpython-39-darwin.so' not valid for
+use in process: Trying to load an unsigned library)
+```
+
+You might look at [this question](https://stackoverflow.com/questions/69610572/how-can-i-solve-the-below-error-while-importing-nltk-package)
+and use ``xcrun codesign`` to fix it.
+
+---
+
 If you wonder why ``STOCHRSI`` gives you different results than you expect,
 probably you want ``STOCH`` applied to ``RSI``, which is a little different
 than the ``STOCHRSI`` which is ``STOCHF`` applied to ``RSI``:
 
 ```python
 >>> import talib
->>> import numpy
->>> c = numpy.random.randn(100)
+>>> import numpy as np
+>>> c = np.random.randn(100)
 
 # this is the library function
 >>> k, d = talib.STOCHRSI(c)
@@ -207,6 +268,67 @@ than the ``STOCHRSI`` which is ``STOCHF`` applied to ``RSI``:
 >>> k, d = talib.STOCH(rsi, rsi, rsi)
 ```
 
+---
+
+If the build appears to hang, you might be running on a VM with not enough
+memory -- try 1 GB or 2 GB.
+
+---
+
+If you get "permission denied" errors such as this, you might need to give
+your user access to the location where the underlying TA-Lib C library is
+installed -- or install it to a user-accessible location.
+
+```
+talib/_ta_lib.c:747:28: fatal error: /usr/include/ta-lib/ta_defs.h: Permission denied
+ #include "ta-lib/ta-defs.h"
+                            ^
+compilation terminated
+error: command 'gcc' failed with exit status 1
+```
+
+---
+
+If you're having trouble compiling the underlying TA-Lib C library on ARM64,
+you might need to configure it with an explicit build type before running
+``make`` and ``make install``, for example:
+
+```
+$ ./configure --build=aarch64-unknown-linux-gnu
+```
+
+This is caused by old ``config.guess`` file, so another way to solve this is
+to copy a newer version of config.guess into the underlying TA-Lib C library
+sources:
+
+```
+$ cp /usr/share/automake-1.16/config.guess /path/to/extracted/ta-lib/config.guess
+```
+
+And then re-run configure:
+
+```
+$ ./configure
+```
+
+---
+
+If you're having trouble using [PyInstaller](https://pyinstaller.org) and
+get an error that looks like this:
+
+```
+...site-packages\PyInstaller\loader\pyimod03_importers.py", line 493, in exec_module
+    exec(bytecode, module.__dict__)
+  File "talib\__init__.py", line 72, in <module>
+ModuleNotFoundError: No module named 'talib.stream'
+```
+
+Then, perhaps you can use the ``--hidden-import`` argument to fix this:
+
+```
+$ pyinstaller --hidden-import talib.stream "replaceToYourFileName.py"
+```
+
 ## Function API
 
 Similar to TA-Lib, the Function API provides a lightweight wrapper of the
@@ -218,15 +340,15 @@ will have an initial "lookback" period (a required number of observations
 before an output is generated) set to ``NaN``.
 
 For convenience, the Function API supports both ``numpy.ndarray`` and
-``pandas.Series`` inputs.
+``pandas.Series`` and ``polars.Series`` inputs.
 
 All of the following examples use the Function API:
 
 ```python
-import numpy
+import numpy as np
 import talib
 
-close = numpy.random.random(100)
+close = np.random.random(100)
 ```
 
 Calculate a simple moving average of the close prices:
@@ -249,15 +371,45 @@ Calculating momentum of the close prices, with a time period of 5:
 output = talib.MOM(close, timeperiod=5)
 ```
 
+##### NaN's
+
+The underlying TA-Lib C library handles NaN's in a sometimes surprising manner
+by typically propagating NaN's to the end of the output, for example:
+
+```python
+>>> c = np.array([1.0, 2.0, 3.0, np.nan, 4.0, 5.0, 6.0])
+
+>>> talib.SMA(c, 3)
+array([nan, nan,  2., nan, nan, nan, nan])
+```
+
+You can compare that to a Pandas rolling mean, where their approach is to
+output NaN until enough "lookback" values are observed to generate new outputs:
+
+```python
+>>> c = pandas.Series([1.0, 2.0, 3.0, np.nan, 4.0, 5.0, 6.0])
+
+>>> c.rolling(3).mean()
+0    NaN
+1    NaN
+2    2.0
+3    NaN
+4    NaN
+5    NaN
+6    5.0
+dtype: float64
+```
+
 ## Abstract API
 
 If you're already familiar with using the function API, you should feel right
 at home using the Abstract API.
 
 Every function takes a collection of named inputs, either a ``dict`` of
-``numpy.ndarray`` or ``pandas.Series``, or a ``pandas.DataFrame``. If a
-``pandas.DataFrame`` is provided, the output is returned as a
-``pandas.DataFrame`` with named output columns.
+``numpy.ndarray`` or ``pandas.Series`` or ``polars.Series``, or a
+``pandas.DataFrame`` or ``polars.DataFrame``. If a ``pandas.DataFrame`` or
+``polars.DataFrame`` is provided, the output is returned as the same type
+with named output columns.
 
 For example, inputs could be provided for the typical "OHLCV" data:
 
@@ -298,7 +450,7 @@ output = SMA(inputs, timeperiod=25)
 output = SMA(inputs, timeperiod=25, price='open')
 
 # uses close prices (default)
-upper, middle, lower = BBANDS(inputs, 20, 2, 2)
+upper, middle, lower = BBANDS(inputs, 20, 2.0, 2.0)
 
 # uses high, low, close (default)
 slowk, slowd = STOCH(inputs, 5, 3, 0, 3, 0) # uses high, low, close by default
@@ -340,10 +492,14 @@ etc):
 import talib
 
 # list of functions
-print talib.get_functions()
+for name in talib.get_functions():
+    print(name)
 
 # dict of functions by group
-print talib.get_function_groups()
+for group, names in talib.get_function_groups().items():
+    print(group)
+    for name in names:
+        print(f"  {name}")
 ```
 
 ### Indicator Groups

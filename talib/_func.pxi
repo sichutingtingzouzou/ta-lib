@@ -56,7 +56,7 @@ cdef np.npy_intp check_length4(np.ndarray a1, np.ndarray a2, np.ndarray a3, np.n
         raise Exception("input array lengths are different")
     return length
 
-cdef np.npy_int check_begidx1(np.npy_intp length, double* a1) except -1:
+cdef np.npy_int check_begidx1(np.npy_intp length, double* a1):
     cdef:
         double val
     for i from 0 <= i < length:
@@ -65,9 +65,9 @@ cdef np.npy_int check_begidx1(np.npy_intp length, double* a1) except -1:
             continue
         return i
     else:
-        raise Exception("inputs are all NaN")
+        return length - 1
 
-cdef np.npy_int check_begidx2(np.npy_intp length, double* a1, double* a2) except -1:
+cdef np.npy_int check_begidx2(np.npy_intp length, double* a1, double* a2):
     cdef:
         double val
     for i from 0 <= i < length:
@@ -79,9 +79,9 @@ cdef np.npy_int check_begidx2(np.npy_intp length, double* a1, double* a2) except
             continue
         return i
     else:
-        raise Exception("inputs are all NaN")
+        return length - 1
 
-cdef np.npy_int check_begidx3(np.npy_intp length, double* a1, double* a2, double* a3) except -1:
+cdef np.npy_int check_begidx3(np.npy_intp length, double* a1, double* a2, double* a3):
     cdef:
         double val
     for i from 0 <= i < length:
@@ -96,9 +96,9 @@ cdef np.npy_int check_begidx3(np.npy_intp length, double* a1, double* a2, double
             continue
         return i
     else:
-        raise Exception("inputs are all NaN")
+        return length - 1
 
-cdef np.npy_int check_begidx4(np.npy_intp length, double* a1, double* a2, double* a3, double* a4) except -1:
+cdef np.npy_int check_begidx4(np.npy_intp length, double* a1, double* a2, double* a3, double* a4):
     cdef:
         double val
     for i from 0 <= i < length:
@@ -116,7 +116,7 @@ cdef np.npy_int check_begidx4(np.npy_intp length, double* a1, double* a2, double
             continue
         return i
     else:
-        raise Exception("inputs are all NaN")
+        return length - 1
 
 cdef np.ndarray make_double_array(np.npy_intp length, int lookback):
     cdef:
@@ -566,8 +566,8 @@ def BBANDS( np.ndarray real not None , int timeperiod=-2**31 , double nbdevup=-4
         real: (any ndarray)
     Parameters:
         timeperiod: 5
-        nbdevup: 2
-        nbdevdn: 2
+        nbdevup: 2.0
+        nbdevdn: 2.0
         matype: 0 (Simple Moving Average)
     Outputs:
         upperband
@@ -3667,6 +3667,9 @@ def MAXINDEX( np.ndarray real not None , int timeperiod=-2**31 ):
     outinteger = make_int_array(length, lookback)
     retCode = lib.TA_MAXINDEX( 0 , endidx , <double *>(real.data)+begidx , timeperiod , &outbegidx , &outnbelement , <int *>(outinteger.data)+lookback )
     _ta_check_success("TA_MAXINDEX", retCode)
+    outinteger_data = <int*>outinteger.data
+    for i from lookback <= i < length:
+        outinteger_data[i] += begidx
     return outinteger 
 
 @wraparound(False)  # turn off relative indexing from end of lists
@@ -3856,6 +3859,9 @@ def MININDEX( np.ndarray real not None , int timeperiod=-2**31 ):
     outinteger = make_int_array(length, lookback)
     retCode = lib.TA_MININDEX( 0 , endidx , <double *>(real.data)+begidx , timeperiod , &outbegidx , &outnbelement , <int *>(outinteger.data)+lookback )
     _ta_check_success("TA_MININDEX", retCode)
+    outinteger_data = <int*>outinteger.data
+    for i from lookback <= i < length:
+        outinteger_data[i] += begidx
     return outinteger 
 
 @wraparound(False)  # turn off relative indexing from end of lists
@@ -3924,6 +3930,12 @@ def MINMAXINDEX( np.ndarray real not None , int timeperiod=-2**31 ):
     outmaxidx = make_int_array(length, lookback)
     retCode = lib.TA_MINMAXINDEX( 0 , endidx , <double *>(real.data)+begidx , timeperiod , &outbegidx , &outnbelement , <int *>(outminidx.data)+lookback , <int *>(outmaxidx.data)+lookback )
     _ta_check_success("TA_MINMAXINDEX", retCode)
+    outminidx_data = <int*>outminidx.data
+    for i from lookback <= i < length:
+        outminidx_data[i] += begidx
+    outmaxidx_data = <int*>outmaxidx.data
+    for i from lookback <= i < length:
+        outmaxidx_data[i] += begidx
     return outminidx , outmaxidx 
 
 @wraparound(False)  # turn off relative indexing from end of lists
@@ -4413,8 +4425,8 @@ def SAREXT( np.ndarray high not None , np.ndarray low not None , double startval
     Inputs:
         prices: ['high', 'low']
     Parameters:
-        startvalue: 0
-        offsetonreverse: 0
+        startvalue: 0.0
+        offsetonreverse: 0.0
         accelerationinitlong: 0.02
         accelerationlong: 0.02
         accelerationmaxlong: 0.2
@@ -4571,7 +4583,7 @@ def STDDEV( np.ndarray real not None , int timeperiod=-2**31 , double nbdev=-4e3
         real: (any ndarray)
     Parameters:
         timeperiod: 5
-        nbdev: 1
+        nbdev: 1.0
     Outputs:
         real
     """
@@ -4712,7 +4724,7 @@ def STOCHRSI( np.ndarray real not None , int timeperiod=-2**31 , int fastk_perio
 def SUB( np.ndarray real0 not None , np.ndarray real1 not None ):
     """ SUB(real0, real1)
 
-    Vector Arithmetic Substraction (Math Operators)
+    Vector Arithmetic Subtraction (Math Operators)
 
     Inputs:
         real0: (any ndarray)
@@ -5091,7 +5103,7 @@ def VAR( np.ndarray real not None , int timeperiod=-2**31 , double nbdev=-4e37 )
         real: (any ndarray)
     Parameters:
         timeperiod: 5
-        nbdev: 1
+        nbdev: 1.0
     Outputs:
         real
     """
